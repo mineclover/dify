@@ -6,7 +6,7 @@ import manifest from '../manifest.json'
 
 export { AdvancedPanelExampleNode as NodeComponent } from './node'
 export { AdvancedPanelExamplePanel as PanelComponent } from './panel'
-export { advanced-panel-exampleDefault as defaultConfig } from './default'
-export { nodeType, manifest }
+export { advancedPanelExampleDefault as defaultConfig } from './default'
 
 export const nodeType = manifest.node_type
+export { manifest }

@@ -11,7 +11,8 @@ A complete solution for developing and deploying custom workflow nodes for Dify 
 - **🔄 Update-Friendly** - When Dify updates, just re-apply patches (only 5 files!)
 - **🎨 Clean SDK** - Simple, typed APIs for Python and TypeScript
 - **🚀 Hot Reload** - Development mode with instant changes
-- **📚 Auto-Discovery** - Custom nodes automatically discovered at runtime
+- **📚 Auto-Discovery** - Custom nodes and panels automatically discovered at runtime
+- **🎛️ Custom Panels** - Build rich UI panels with 30+ components
 - **🐳 Docker Ready** - Full Docker Compose integration
 
 ## 📋 Table of Contents
@@ -20,6 +21,7 @@ A complete solution for developing and deploying custom workflow nodes for Dify 
 - [Architecture](#architecture)
 - [Installation](#installation)
 - [Creating Custom Nodes](#creating-custom-nodes)
+- [Custom Panels](#custom-panels)
 - [Examples](#examples)
 - [SDK Reference](#sdk-reference)
 - [Updating Dify](#updating-dify)
@@ -255,14 +257,107 @@ export const MyPanel: FC<NodePanelProps<MyNodeData>> = ({ id, data }) => {
 }
 ```
 
+## 🎛️ Custom Panels
+
+Build rich configuration UIs for your custom nodes with **automatic panel discovery** and 30+ UI components.
+
+### Automatic Panel Loading
+
+Panels are automatically discovered and registered - no manual imports needed!
+
+```typescript
+// frontend/index.ts - Auto-discovered by dify-patcher
+export { MyNode as NodeComponent } from './node'
+export { MyPanel as PanelComponent } from './panel'  // ← Auto-registered
+export const nodeType = manifest.node_type
+```
+
+### Available UI Components
+
+**Basic Inputs:**
+- `Input` - Single-line text
+- `Textarea` - Multi-line text
+- `Select` - Dropdown selection
+- `Switch` - Boolean toggle
+- `InputNumberWithSlider` - Number with slider
+
+**Variable Components:**
+- `VarReferencePicker` - Select workflow variables
+- `InputSupportSelectVar` - Text with `{{#variable#}}` insertion
+- `VarList` - Multiple variable management
+
+**Advanced:**
+- `CodeEditor` - Monaco editor with syntax highlighting
+- `Collapse` - Collapsible sections
+- `Field` - Layout wrapper with label/tooltip
+
+### Example Panel
+
+```typescript
+import { useConfig } from './use-config'
+import { useAvailableVarList } from '@/app/components/workflow/nodes/_base/hooks/use-available-var-list'
+import Field from '@/app/components/workflow/nodes/_base/components/field'
+import Input from '@/app/components/workflow/nodes/_base/components/input'
+import { VarReferencePicker } from '@/app/components/workflow/nodes/_base/components/variable'
+
+export const MyPanel: FC<NodePanelProps> = ({ id, data }) => {
+  const { inputs, handleFieldChange } = useConfig(id, data)
+  const { availableVars } = useAvailableVarList(id)
+
+  return (
+    <div className="space-y-4">
+      <Field title="Name" required tooltip="Enter a name">
+        <Input
+          value={inputs.name}
+          onChange={handleFieldChange('name')}
+        />
+      </Field>
+
+      <Field title="Input Variable">
+        <VarReferencePicker
+          nodeId={id}
+          availableVars={availableVars}
+          value={inputs.variable}
+          onChange={handleFieldChange('variable')}
+        />
+      </Field>
+    </div>
+  )
+}
+```
+
+### Panel Documentation
+
+- **[Panel Components Reference](./conventions/panel-components.md)** (22KB) - Complete API reference for all 30+ components
+- **[Custom Panel Guide](./conventions/custom-panel-guide.md)** (24KB) - Step-by-step tutorials and patterns
+- **[Panel Extension Guide](./PANEL_EXTENSION.md)** - How auto-discovery works
+- **[Advanced Panel Example](./nodes/advanced-panel-example/)** - Live reference implementation
+
+### Panel Features
+
+✅ **Auto-Discovery** - Panels automatically registered from `_custom` directory
+✅ **Hot Reload** - Instant updates in dev mode
+✅ **Type Safe** - Full TypeScript support
+✅ **Variable System** - Integrate with workflow variables
+✅ **30+ Components** - Rich UI component library
+✅ **Validation** - Built-in validation patterns
+✅ **i18n Ready** - Internationalization support
+
 ## 📚 Examples
 
 ### Included Examples
 
-- **weather-api** - Fetch weather from OpenWeatherMap
-  - External API calls
-  - Error handling
+- **weather-api** - Production-ready API integration
+  - External API calls with error handling
   - Multiple output types
+  - Complete panel UI
+
+- **advanced-panel-example** - Panel UI reference
+  - Demonstrates all 30+ UI components
+  - Variable selection and insertion
+  - Conditional rendering and validation
+  - Dynamic lists and collapsible sections
+  - Complete documentation
 
 More examples coming soon:
 - Database query node

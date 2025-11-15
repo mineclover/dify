@@ -65,6 +65,8 @@ mkdir -p "$NODE_DIR/frontend"
 # Convert node-name to NodeName for class names
 NODE_CLASS_NAME=$(echo "$NODE_NAME" | sed -r 's/(^|-)([a-z])/\U\2/g')
 NODE_DISPLAY_NAME=$(echo "$NODE_NAME" | sed 's/-/ /g' | sed 's/\b\(.\)/\u\1/g')
+# Convert node-name to nodeName for camelCase variable names
+NODE_CAMEL_NAME=$(echo "$NODE_NAME" | sed -r 's/-([a-z])/\U\1/g')
 
 # Create manifest.json
 echo -e "${GREEN}📝 Creating manifest.json...${NC}"
@@ -189,10 +191,10 @@ import manifest from '../manifest.json'
 
 export { ${NODE_CLASS_NAME}Node as NodeComponent } from './node'
 export { ${NODE_CLASS_NAME}Panel as PanelComponent } from './panel'
-export { ${NODE_NAME}Default as defaultConfig } from './default'
-export { nodeType, manifest }
+export { ${NODE_CAMEL_NAME}Default as defaultConfig } from './default'
 
 export const nodeType = manifest.node_type
+export { manifest }
 EOF
 
 # Create frontend types.ts
@@ -337,7 +339,7 @@ import type { NodeDefault, ValidationResult } from '../../../sdk/typescript/src/
 import { VarType } from '../../../sdk/typescript/src/types'
 import type { ${NODE_CLASS_NAME}NodeData } from './types'
 
-export const ${NODE_NAME}Default: NodeDefault<${NODE_CLASS_NAME}NodeData> = {
+export const ${NODE_CAMEL_NAME}Default: NodeDefault<${NODE_CLASS_NAME}NodeData> = {
   defaultValue: {
     title: '$NODE_DISPLAY_NAME',
     desc: 'Custom node',

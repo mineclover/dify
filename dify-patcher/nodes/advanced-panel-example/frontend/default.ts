@@ -6,7 +6,7 @@ import type { NodeDefault, ValidationResult } from '../../../sdk/typescript/src/
 import { VarType } from '../../../sdk/typescript/src/types'
 import type { AdvancedPanelExampleNodeData } from './types'
 
-export const advanced-panel-exampleDefault: NodeDefault<AdvancedPanelExampleNodeData> = {
+export const advancedPanelExampleDefault: NodeDefault<AdvancedPanelExampleNodeData> = {
   defaultValue: {
     title: 'Advanced Panel Example',
     desc: 'Custom node',

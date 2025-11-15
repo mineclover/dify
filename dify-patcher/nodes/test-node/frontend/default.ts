@@ -6,7 +6,7 @@ import type { NodeDefault, ValidationResult } from '../../../sdk/typescript/src/
 import { VarType } from '../../../sdk/typescript/src/types'
 import type { TestNodeNodeData } from './types'
 
-export const test-nodeDefault: NodeDefault<TestNodeNodeData> = {
+export const testNodeDefault: NodeDefault<TestNodeNodeData> = {
   defaultValue: {
     title: 'Test Node',
     desc: 'Custom node',

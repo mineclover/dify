@@ -6,7 +6,7 @@ import manifest from '../manifest.json'
 
 export { TestNodeNode as NodeComponent } from './node'
 export { TestNodePanel as PanelComponent } from './panel'
-export { test-nodeDefault as defaultConfig } from './default'
-export { nodeType, manifest }
+export { testNodeDefault as defaultConfig } from './default'
 
 export const nodeType = manifest.node_type
+export { manifest }

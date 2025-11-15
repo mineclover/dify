@@ -1,0 +1,38 @@
+diff --git a/web/app/components/workflow/nodes/components.ts b/web/app/components/workflow/nodes/components.ts
+index 1234567..abcdefg 100644
+--- a/web/app/components/workflow/nodes/components.ts
++++ b/web/app/components/workflow/nodes/components.ts
+@@ -105,3 +105,29 @@ export const PanelComponentMap: Record<string, ComponentType<any>> = {
+   [BlockEnum.TriggerPlugin]: TriggerPluginPanel,
+ }
+
++// ============================================================
++// Custom Nodes Auto-Loader (dify-patcher)
++// ============================================================
++// Automatically load custom nodes from _custom directory
++// This allows zero-fork custom node development
++try {
++  // Use webpack's require.context to dynamically import all custom nodes
++  const customNodesContext = require.context('./_custom', true, /frontend\/index\.(ts|tsx|js|jsx)$/)
++
++  customNodesContext.keys().forEach((key: string) => {
++    try {
++      const module = customNodesContext(key)
++
++      // Register node component if exported
++      if (module.nodeType && module.NodeComponent) {
++        NodeComponentMap[module.nodeType] = module.NodeComponent
++      }
++
++      // Register panel component if exported
++      if (module.nodeType && module.PanelComponent) {
++        PanelComponentMap[module.nodeType] = module.PanelComponent
++      }
++    } catch (error) {
++      console.warn(`[dify-patcher] Failed to load custom node from ${key}:`, error)
++    }
++  })
++} catch (error) {
++  // Custom nodes directory doesn't exist or other error - this is fine
++  console.info('[dify-patcher] No custom nodes found or error loading custom nodes')
++}
