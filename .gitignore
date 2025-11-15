@@ -242,3 +242,12 @@ scripts/stress-test/reports/
 
 # settings
 *.local.json
+
+# Custom nodes development (symlinks created by dify-patcher)
+/api/extensions/custom_nodes
+/api/dify_custom_nodes
+/web/app/components/workflow/nodes/_custom
+
+# Environment files with custom nodes config
+/.env.local
+/web/.env.local
