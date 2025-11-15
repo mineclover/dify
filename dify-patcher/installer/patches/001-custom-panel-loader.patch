@@ -1,11 +1,9 @@
 diff --git a/web/app/components/workflow/nodes/components.ts b/web/app/components/workflow/nodes/components.ts
-index 1234567..abcdefg 100644
+index 0000000000..1111111111 100644
 --- a/web/app/components/workflow/nodes/components.ts
 +++ b/web/app/components/workflow/nodes/components.ts
-@@ -105,3 +105,29 @@ export const PanelComponentMap: Record<string, ComponentType<any>> = {
-   [BlockEnum.TriggerPlugin]: TriggerPluginPanel,
- }
-
+@@ -106,0 +107,28 @@ export const PanelComponentMap: Record<string, ComponentType<any>> = {
++
 +// ============================================================
 +// Custom Nodes Auto-Loader (dify-patcher)
 +// ============================================================
