@@ -14,6 +14,7 @@ A complete solution for developing and deploying custom workflow nodes for Dify 
 - **📚 Auto-Discovery** - Custom nodes and panels automatically discovered at runtime
 - **🎛️ Custom Panels** - Build rich UI panels with 30+ components
 - **💾 State Management** - StateManager SDK for persistent conversation variables
+- **⚡ Interactive Installer** - Cross-platform CLI with guided setup
 - **🐳 Docker Ready** - Full Docker Compose integration
 
 ## 📋 Table of Contents
@@ -40,6 +41,35 @@ git clone https://github.com/mineclover/dify-patcher.git
 ```
 
 ### 2. Install to Dify
+
+**Option A: Interactive Installer (Recommended)**
+
+```bash
+cd dify-patcher/installer/cli
+npm install
+npm run dev -- install
+```
+
+The interactive installer will guide you through:
+- Selecting Dify installation path
+- Choosing installation mode (dev/docker)
+- Configuration options
+
+**Option B: Command Line**
+
+```bash
+cd dify-patcher/installer/cli
+npm install
+npm run build
+
+# Development mode (with hot reload)
+npm start -- install --target ../../dify --mode dev
+
+# Docker mode (for containers)
+npm start -- install --target ../../dify --mode docker
+```
+
+**Option C: Legacy Bash Script**
 
 ```bash
 cd dify-patcher
@@ -123,18 +153,41 @@ That's it! Your custom node is now available in Dify's workflow editor.
 
 - **Dify** installed locally or via Docker
 - **Python 3.10+** with `pip` or `uv`
-- **Node.js 18+** with `pnpm` or `npm`
+- **Node.js 16+** with `npm` (for installer)
 - **Git**
+
+### Interactive Installer (Recommended)
+
+The easiest way to install:
+
+```bash
+cd dify-patcher/installer/cli
+npm install
+npm run dev -- install
+```
+
+Features:
+- ✅ **Guided setup** with prompts and validation
+- ✅ **Cross-platform** (Windows, macOS, Linux)
+- ✅ **Progress indicators** and colored output
+- ✅ **Error handling** with helpful messages
+- ✅ **Uninstall support** for clean removal
+
+See [Installer CLI Documentation](./installer/cli/README.md) for advanced usage.
 
 ### Docker Mode (Production)
 
 ```bash
 # 1. Install patcher
-./installer/install.sh --target /path/to/dify --mode docker
+cd dify-patcher/installer/cli
+npm install
+npm start -- install --target ../../dify --mode docker
 
-# 2. This creates docker-compose.override.yml with volume mounts
+# 2. Add to environment variables
+echo "CUSTOM_NODES_ENABLED=true" >> ../../dify/docker/.env
+
 # 3. Start Dify
-cd /path/to/dify/docker
+cd ../../dify/docker
 docker-compose up -d
 
 # 4. Check logs for loaded custom nodes
@@ -144,10 +197,16 @@ docker-compose logs -f api | grep "custom node"
 ### Development Mode (Local)
 
 ```bash
-# 1. Install patcher with symlinks
-./installer/install.sh --target /path/to/dify --mode dev
+# 1. Install patcher with symlinks (for hot reload)
+cd dify-patcher/installer/cli
+npm install
+npm start -- install --target ../../dify --mode dev
 
-# 2. Start Dify backend
+# 2. Add to environment variables
+echo "CUSTOM_NODES_ENABLED=true" >> ../../dify/.env
+echo "NEXT_PUBLIC_CUSTOM_NODES_ENABLED=true" >> ../../dify/web/.env.local
+
+# 3. Start Dify backend
 cd /path/to/dify
 uv run --project api python -m flask run
 
