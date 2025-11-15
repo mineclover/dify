@@ -13,6 +13,7 @@ A complete solution for developing and deploying custom workflow nodes for Dify 
 - **🚀 Hot Reload** - Development mode with instant changes
 - **📚 Auto-Discovery** - Custom nodes and panels automatically discovered at runtime
 - **🎛️ Custom Panels** - Build rich UI panels with 30+ components
+- **💾 State Management** - StateManager SDK for persistent conversation variables
 - **🐳 Docker Ready** - Full Docker Compose integration
 
 ## 📋 Table of Contents
@@ -23,6 +24,7 @@ A complete solution for developing and deploying custom workflow nodes for Dify 
 - [Creating Custom Nodes](#creating-custom-nodes)
 - [Custom Panels](#custom-panels)
 - [Examples](#examples)
+- [State Management](#-state-management)
 - [SDK Reference](#sdk-reference)
 - [Updating Dify](#updating-dify)
 - [Contributing](#contributing)
@@ -359,6 +361,13 @@ export const MyPanel: FC<NodePanelProps> = ({ id, data }) => {
   - Dynamic lists and collapsible sections
   - Complete documentation
 
+- **stateful-chat-example** - State management patterns
+  - Conversation history tracking
+  - Turn counters and accumulators
+  - Feature flags and session context
+  - StateManager SDK usage
+  - Complete workflow example
+
 More examples coming soon:
 - Database query node
 - Custom API integration
@@ -367,6 +376,136 @@ More examples coming soon:
 ### Community Examples
 
 Have a cool custom node? Submit a PR to add it to the examples!
+
+## 🔄 State Management
+
+Build stateful workflows with **persistent conversation variables** and the **StateManager SDK**.
+
+### Overview
+
+Dify provides a comprehensive state management system that allows custom nodes to maintain state across conversation turns, track history, and build complex stateful logic.
+
+**Key Capabilities:**
+
+- ✅ **Conversation Variables** - Persistent state across sessions (stored in DB)
+- ✅ **Environment Variables** - App-level global configuration
+- ✅ **System Variables** - Runtime information (conversation_id, user_id, etc.)
+- ✅ **Variable Assigner** - Built-in node for state updates
+- ✅ **StateManager SDK** - Helper utilities for custom nodes
+
+### Quick Example
+
+```python
+from dify_custom_nodes import StateManager, StatePattern
+
+def _run(self) -> NodeRunResult:
+    # Create state manager
+    state = StateManager(self.graph_runtime_state.variable_pool)
+
+    # Read persistent conversation variables
+    user_count = state.get_conversation_var('user_count') or 0
+    chat_history = state.get_conversation_var('chat_history') or []
+
+    # Read environment variables
+    api_url = state.get_env_var('api_base_url')
+
+    # Process with state
+    result = self.process(user_count, chat_history)
+
+    # Prepare outputs for Variable Assigner to persist state
+    return {
+        'status': WorkflowNodeExecutionStatus.SUCCEEDED,
+        'outputs': {
+            'result': result,
+            **state.output_for_conv_var('user_count', user_count + 1),
+            **state.output_for_conv_var('chat_history', chat_history + [new_item])
+        }
+    }
+```
+
+### StateManager SDK
+
+**Available in Python SDK** (`dify_custom_nodes.StateManager`):
+
+```python
+# Read state
+state.get_conversation_var('name')    # Persistent across sessions
+state.get_env_var('name')             # App-level configuration
+state.get_system_var('name')          # Runtime information
+state.get_node_var('node_id', 'var')  # Other node outputs
+
+# Prepare outputs for Variable Assigner
+state.output_for_conv_var('name', value)
+state.create_accumulator_output('list_name', new_item)
+```
+
+**StatePattern Helpers**:
+
+```python
+# Counter increment
+StatePattern.counter_increment(state, 'turn_count')
+
+# Feature flags
+if StatePattern.feature_flag_check(state, 'advanced_mode'):
+    result = advanced_processing()
+
+# Session context
+context = StatePattern.session_context_init()
+```
+
+### Workflow Pattern
+
+To persist state, connect custom node outputs to Variable Assigner nodes:
+
+```
+[Your Custom Node]
+    ↓ outputs: conv_var_user_count, conv_var_history
+    ↓
+[Variable Assigner #1]
+    operation: SET
+    variable: conversation.user_count
+    value: [your-node.conv_var_user_count]
+    ↓
+[Variable Assigner #2]
+    operation: SET
+    variable: conversation.history
+    value: [your-node.conv_var_history]
+```
+
+### Documentation
+
+- **[State Management Analysis](./STATE_MANAGEMENT_ANALYSIS.md)** - Complete architecture overview
+- **[Stateful Chat Example](./nodes/stateful-chat-example/)** - Working implementation
+- **[StateManager API](./sdk/python/dify_custom_nodes/state_helpers.py)** - SDK source code
+
+### Common Patterns
+
+**Turn Counter:**
+```python
+turn_count_output = StatePattern.counter_increment(state, 'turn_count')
+```
+
+**Conversation History (Accumulator):**
+```python
+history = state.get_conversation_var('chat_history') or []
+updated_history = (history + [new_message])[-max_items:]  # Keep last N
+output = state.output_for_conv_var('chat_history', updated_history)
+```
+
+**Feature Flags:**
+```python
+flags = state.get_conversation_var('feature_flags') or {}
+flags['detailed_mode'] = user_preference
+output = state.output_for_conv_var('feature_flags', flags)
+```
+
+**Session Context:**
+```python
+context = state.get_conversation_var('session_context') or StatePattern.session_context_init()
+context['intent'] = detected_intent
+context['topic_history'].append(current_topic)
+output = state.output_for_conv_var('session_context', context)
+```
 
 ## 📖 SDK Reference
 

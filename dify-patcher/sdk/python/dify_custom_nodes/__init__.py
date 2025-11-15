@@ -20,6 +20,11 @@ __version__ = "0.1.0"
 
 from dify_custom_nodes.base_node import BaseCustomNode
 from dify_custom_nodes.decorators import register_node
+from dify_custom_nodes.state_helpers import (
+    StateManager,
+    StatePattern,
+    create_state_manager,
+)
 from dify_custom_nodes.types import (
     NodeRunResult,
     NodeSchema,
@@ -29,6 +34,9 @@ from dify_custom_nodes.types import (
 __all__ = [
     "BaseCustomNode",
     "register_node",
+    "StateManager",
+    "StatePattern",
+    "create_state_manager",
     "NodeRunResult",
     "NodeSchema",
     "WorkflowNodeExecutionStatus",
