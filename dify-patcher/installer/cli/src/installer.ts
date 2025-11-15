@@ -12,6 +12,7 @@ import {
   createSymlink,
   copyDirectory,
   applyPatch,
+  resolvePath,
 } from './utils'
 
 /**
@@ -30,7 +31,8 @@ export async function install(options: InstallOptions): Promise<InstallResult> {
   try {
     // Get patcher root (2 levels up from this file: cli/src -> cli -> installer -> root)
     const patcherRoot = path.resolve(__dirname, '../../..')
-    const difyRoot = path.resolve(options.target)
+    // Resolve target path (supports ~, relative, and absolute paths)
+    const difyRoot = resolvePath(options.target)
 
     // Validate Dify installation
     const spinner = ora('Validating Dify installation...').start()
@@ -234,7 +236,8 @@ export async function uninstall(targetPath: string, verbose: boolean = false): P
   try {
     const spinner = ora('Removing dify-patcher installation...').start()
 
-    const difyRoot = path.resolve(targetPath)
+    // Resolve target path (supports ~, relative, and absolute paths)
+    const difyRoot = resolvePath(targetPath)
     const patcherRoot = path.resolve(__dirname, '../../..')
     const paths = getInstallationPaths(patcherRoot, difyRoot)
 

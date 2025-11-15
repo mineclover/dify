@@ -6,6 +6,7 @@ Interactive, cross-platform installer for dify-patcher custom nodes.
 
 - ✅ **Interactive CLI** - User-friendly prompts with validation
 - ✅ **Cross-Platform** - Works on Windows, macOS, and Linux
+- ✅ **Flexible Path Support** - Supports relative paths, absolute paths, and tilde (~) expansion
 - ✅ **Progress Indicators** - Visual feedback with spinners and colors
 - ✅ **Multiple Modes** - Development (symlinks) or Docker (copy files)
 - ✅ **Type-Safe** - Written in TypeScript with full type definitions
@@ -49,15 +50,27 @@ You'll be prompted for:
 For CI/CD or scripting:
 
 ```bash
-# Development mode
+# Development mode (relative path)
 dify-install install --target ../dify --mode dev
 
-# Docker mode
-dify-install install --target ../dify --mode docker --yes
+# Docker mode (absolute path)
+dify-install install --target /home/user/dify --mode docker --yes
+
+# With tilde expansion (home directory)
+dify-install install -t ~/projects/dify -m dev --verbose
+
+# Windows absolute path
+dify-install install -t C:\Users\username\dify -m dev
 
 # With options
 dify-install install -t ../dify -m dev --verbose --skip-patches
 ```
+
+**Path Support:**
+- ✅ **Relative paths**: `../dify`, `../../dify`, `./my-dify`
+- ✅ **Absolute paths**: `/home/user/dify`, `C:\Users\username\dify`
+- ✅ **Tilde expansion**: `~/projects/dify`, `~/dify`
+- ✅ **Automatic normalization**: Handles `..`, `.`, and multiple slashes
 
 ### Commands
 

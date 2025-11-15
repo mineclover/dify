@@ -4,18 +4,46 @@
 
 import fs from 'fs-extra'
 import path from 'path'
+import os from 'os'
 import chalk from 'chalk'
 import type { InstallationPaths, InstallMode } from './types'
+
+/**
+ * Expand tilde (~) in path to home directory
+ */
+export function expandTilde(filePath: string): string {
+  if (filePath.startsWith('~/') || filePath === '~') {
+    return path.join(os.homedir(), filePath.slice(1))
+  }
+  return filePath
+}
+
+/**
+ * Resolve and normalize a path (supports ~, relative, and absolute paths)
+ */
+export function resolvePath(inputPath: string): string {
+  // Expand tilde first
+  const expandedPath = expandTilde(inputPath)
+
+  // Resolve to absolute path
+  const absolutePath = path.resolve(expandedPath)
+
+  // Normalize (handle .. and . and multiple slashes)
+  return path.normalize(absolutePath)
+}
 
 /**
  * Check if a directory exists and is a Dify installation
  */
 export async function validateDifyInstallation(difyPath: string): Promise<boolean> {
   try {
+    // Resolve path first
+    const resolvedPath = resolvePath(difyPath)
+
     // Check for key Dify directories
-    const apiPath = path.join(difyPath, 'api')
-    const webPath = path.join(difyPath, 'web')
-    const dockerPath = path.join(difyPath, 'docker')
+    const apiPath = path.join(resolvedPath, 'api')
+    const webPath = path.join(resolvedPath, 'web')
+    const dockerPath = path.join(resolvedPath, 'docker')
 
     const [apiExists, webExists, dockerExists] = await Promise.all([
       fs.pathExists(apiPath),
@@ -33,19 +61,26 @@ export async function validateDifyInstallation(difyPath: string): Promise<boolea
  * Get installation paths based on target directory
  */
 export function getInstallationPaths(patcherRoot: string, difyRoot: string): InstallationPaths {
+  // Ensure all paths are absolute
+  const resolvedPatcherRoot = resolvePath(patcherRoot)
+  const resolvedDifyRoot = resolvePath(difyRoot)
+
   return {
-    patcherRoot,
-    difyRoot,
-    backendTarget: path.join(difyRoot, 'api/core/workflow/nodes/_custom'),
-    frontendTarget: path.join(difyRoot, 'web/app/components/workflow/nodes/_custom'),
-    nodesSource: path.join(patcherRoot, 'nodes'),
-    sdkPythonSource: path.join(patcherRoot, 'sdk/python/dify_custom_nodes'),
-    sdkTypeScriptSource: path.join(patcherRoot, 'sdk/typescript'),
+    patcherRoot: resolvedPatcherRoot,
+    difyRoot: resolvedDifyRoot,
+    backendTarget: path.join(resolvedDifyRoot, 'api/core/workflow/nodes/_custom'),
+    frontendTarget: path.join(resolvedDifyRoot, 'web/app/components/workflow/nodes/_custom'),
+    nodesSource: path.join(resolvedPatcherRoot, 'nodes'),
+    sdkPythonSource: path.join(resolvedPatcherRoot, 'sdk/python/dify_custom_nodes'),
+    sdkTypeScriptSource: path.join(resolvedPatcherRoot, 'sdk/typescript'),
   }
 }
 
 /**
  * Create a symlink with proper error handling
+ *
+ * Note: Always uses absolute paths for both source and target to ensure
+ * the symlink works correctly regardless of where it's accessed from.
  */
 export async function createSymlink(
   source: string,
@@ -54,39 +89,44 @@ export async function createSymlink(
   verbose: boolean = false
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // Ensure both paths are absolute
+    const absoluteSource = path.isAbsolute(source) ? source : path.resolve(source)
+    const absoluteTarget = path.isAbsolute(target) ? target : path.resolve(target)
+
     // Check if source exists
-    if (!(await fs.pathExists(source))) {
+    if (!(await fs.pathExists(absoluteSource))) {
       return {
         success: false,
-        error: `Source does not exist: ${source}`,
+        error: `Source does not exist: ${absoluteSource}`,
       }
     }
 
     // Remove existing target if it exists
-    if (await fs.pathExists(target)) {
-      const stats = await fs.lstat(target)
+    if (await fs.pathExists(absoluteTarget)) {
+      const stats = await fs.lstat(absoluteTarget)
       if (stats.isSymbolicLink()) {
-        await fs.remove(target)
+        await fs.remove(absoluteTarget)
         if (verbose) {
-          console.log(chalk.yellow(`  Removed existing symlink: ${target}`))
+          console.log(chalk.yellow(`  Removed existing symlink: ${absoluteTarget}`))
         }
       } else {
         return {
           success: false,
-          error: `Target exists and is not a symlink: ${target}`,
+          error: `Target exists and is not a symlink: ${absoluteTarget}`,
         }
       }
     }
 
     // Ensure parent directory exists
-    await fs.ensureDir(path.dirname(target))
+    await fs.ensureDir(path.dirname(absoluteTarget))
 
-    // Create symlink
-    await fs.symlink(source, target, 'dir')
+    // Create symlink with absolute source path
+    // This ensures the symlink works from any directory
+    await fs.symlink(absoluteSource, absoluteTarget, 'dir')
 
     if (verbose) {
       console.log(chalk.green(`  ✓ ${description}`))
-      console.log(chalk.gray(`    ${source} → ${target}`))
+      console.log(chalk.gray(`    ${absoluteSource} → ${absoluteTarget}`))
     }
 
     return { success: true }

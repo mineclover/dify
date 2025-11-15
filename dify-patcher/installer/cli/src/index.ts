@@ -12,7 +12,7 @@ import chalk from 'chalk'
 import path from 'path'
 import { install, uninstall } from './installer'
 import type { InstallOptions, InstallMode } from './types'
-import { printBanner, printSuccess, printError, validateDifyInstallation } from './utils'
+import { printBanner, printSuccess, printError, validateDifyInstallation, resolvePath } from './utils'
 
 const program = new Command()
 
@@ -115,10 +115,10 @@ program
           {
             type: 'input',
             name: 'target',
-            message: 'Path to Dify installation:',
+            message: 'Path to Dify installation (supports ~, relative, and absolute paths):',
             default: '../dify',
             validate: async (input: string) => {
-              const resolvedPath = path.resolve(input)
+              const resolvedPath = resolvePath(input)
               const isValid = await validateDifyInstallation(resolvedPath)
               return isValid || 'Not a valid Dify installation'
             },
@@ -169,7 +169,7 @@ program
   .action(async (options) => {
     try {
       const fs = require('fs-extra')
-      const difyRoot = path.resolve(options.target)
+      const difyRoot = resolvePath(options.target)
 
       printBanner()
 
@@ -217,11 +217,11 @@ async function promptInstallOptions(cliOptions: any): Promise<InstallOptions> {
     {
       type: 'input',
       name: 'target',
-      message: 'Path to Dify installation:',
+      message: 'Path to Dify installation (supports ~, relative, and absolute paths):',
       default: cliOptions.target || '../dify',
       when: !cliOptions.target,
       validate: async (input: string) => {
-        const resolvedPath = path.resolve(input)
+        const resolvedPath = resolvePath(input)
         const isValid = await validateDifyInstallation(resolvedPath)
         return isValid || 'Not a valid Dify installation. Expected directories: api/, web/, docker/'
       },
