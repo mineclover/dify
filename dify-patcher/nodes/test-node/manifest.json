@@ -1,0 +1,30 @@
+{
+  "node_type": "test-node",
+  "version": "1",
+  "name": "Test Node",
+  "description": "Custom node: Test Node",
+  "author": "Your Name",
+  "icon": "🔧",
+  "category": "custom",
+  "backend": {
+    "entry": "node.py",
+    "dependencies": []
+  },
+  "frontend": {
+    "entry": "index.ts"
+  },
+  "inputs": {
+    "input_text": {
+      "type": "string",
+      "title": "Input Text",
+      "description": "Sample input field",
+      "required": true
+    }
+  },
+  "outputs": {
+    "output_text": {
+      "type": "string",
+      "description": "Sample output field"
+    }
+  }
+}
