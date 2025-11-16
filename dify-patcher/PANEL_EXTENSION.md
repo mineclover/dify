@@ -88,12 +88,12 @@ The installer automatically applies the panel auto-loader patch:
 
 ```bash
 cd /home/user/dify/dify-patcher
-./installer/install.sh --target ../dify --mode dev
+cd installer/cli && npm start -- install --target ../../dify --mode dev
 ```
 
-This runs:
-1. `patcher.py` - Applies `001-custom-panel-loader.patch`
-2. `mount.py` - Creates symlink `/web/app/components/workflow/nodes/_custom`
+This:
+1. Applies `001-custom-panel-loader.patch` to Dify core
+2. Creates symlink `/web/app/components/workflow/nodes/_custom`
 
 ### 2. Verify Installation
 
@@ -335,20 +335,12 @@ See [`advanced-panel-example`](./nodes/advanced-panel-example/) for a complete r
 
 ## Troubleshooting
 
-### Patch Not Applied
+### Patch Not Applied or Symlink Missing
 
 ```bash
-# Re-apply patch
-cd /home/user/dify/dify-patcher
-./installer/install.sh --target ../dify --skip-mount
-```
-
-### Symlink Missing
-
-```bash
-# Recreate symlink
-cd /home/user/dify/dify-patcher
-./installer/mount.py --target ../dify --mode dev
+# Re-run installer
+cd /home/user/dify/dify-patcher/installer/cli
+npm start -- install --target ../../dify --mode dev
 ```
 
 ### TypeScript Errors

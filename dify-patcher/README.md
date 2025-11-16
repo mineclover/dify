@@ -71,18 +71,6 @@ npm start -- install --target ../../dify --mode dev
 npm start -- install --target ../../dify --mode docker
 ```
 
-**Option C: Legacy Bash Script**
-
-```bash
-cd dify-patcher
-
-# For Docker deployment
-./installer/install.sh --target ../dify --mode docker
-
-# For local development
-./installer/install.sh --target ../dify --mode dev
-```
-
 ### 3. Enable custom nodes
 
 ```bash
@@ -884,14 +872,11 @@ When Dify releases an update:
 cd /path/to/dify
 git pull upstream main
 
-# 2. Check if patches still apply
-cd /path/to/dify-patcher
-./installer/patcher.py --target /path/to/dify --patches installer/patches --dry-run
+# 2. Re-install dify-patcher (re-applies patches)
+cd /path/to/dify-patcher/installer/cli
+npm start -- install --target ../../dify --mode docker
 
-# 3. Re-apply patches if needed
-./installer/install.sh --target /path/to/dify --mode docker
-
-# 4. Restart Dify
+# 3. Restart Dify
 cd /path/to/dify/docker
 docker-compose restart
 ```
@@ -909,7 +894,8 @@ docker-compose restart
 # - nodes/my-node/frontend/panel.tsx
 
 # 3. Install in dev mode (if not already)
-./installer/install.sh --target ../dify --mode dev
+cd installer/cli
+npm start -- install --target ../../dify --mode dev
 
 # 4. Test in Dify
 # Changes are immediately reflected (symlinks)
@@ -923,24 +909,28 @@ git commit -m "Add my-node custom node"
 
 ```
 dify-patcher/
-├── installer/              # Installation scripts
-│   ├── install.sh         # Main installer
-│   ├── patcher.py         # Patch applier
-│   ├── mount.py           # Volume/symlink manager
+├── installer/              # Installation tools
+│   ├── cli/               # TypeScript CLI installer (recommended)
+│   │   ├── src/           # TypeScript source
+│   │   ├── package.json   # NPM package
+│   │   └── README.md      # CLI documentation
 │   └── patches/           # Patch files for Dify
 │
 ├── sdk/                   # Development SDKs
-│   ├── python/            # Python SDK
-│   └── typescript/        # TypeScript SDK
+│   ├── python/            # Python SDK for backend nodes
+│   └── typescript/        # TypeScript SDK for frontend
+│       ├── src/types.ts   # Type definitions
+│       └── tsconfig.json  # TypeScript configuration
 │
 ├── nodes/                 # Custom nodes
-│   ├── weather-api/       # Example node
-│   └── [your-nodes]/
+│   ├── agno-agent/        # Agno AgentOS integration
+│   └── [your-nodes]/      # Your custom nodes
 │
 ├── scripts/               # Utility scripts
-│   ├── create-node.sh     # Node generator
-│   └── dev.sh             # Dev environment setup
+│   └── create-node.sh     # Node generator
 │
+├── tsconfig.json          # Root TypeScript config (type imports)
+├── TYPE_SYSTEM.md         # Type system integration guide
 └── README.md              # This file
 ```
 
