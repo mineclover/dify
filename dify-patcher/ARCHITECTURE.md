@@ -37,9 +37,10 @@ dify-patcher/
 │   └── (future)          #    More complex examples
 │
 ├── installer/            # 🔧 Installation tools
-│   ├── install.sh        #    Main installer
-│   ├── patcher.py        #    Git patch applier
-│   ├── mount.py          #    Volume/symlink manager
+│   ├── cli/              #    TypeScript CLI installer (recommended)
+│   │   ├── src/          #    TypeScript source code
+│   │   ├── package.json  #    NPM package definition
+│   │   └── README.md     #    CLI documentation
 │   └── patches/          #    Patch files for Dify
 │
 ├── nodes/                # 🎨 Custom node implementations
@@ -82,12 +83,13 @@ dify-patcher/
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ 1. User runs: ./installer/install.sh --target ../dify      │
+│ 1. User runs: dify-install install --target ../dify        │
+│    (TypeScript CLI installer)                               │
 └─────────────────────────────────────────────────────────────┘
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 2. patcher.py applies 5 minimal patches to Dify core       │
+│ 2. CLI applies 5 minimal patches to Dify core              │
 │    - api/core/workflow/nodes/node_mapping.py               │
 │    - web/app/components/workflow/nodes/components.ts       │
 │    - (3 more small patches)                                 │
@@ -95,16 +97,16 @@ dify-patcher/
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 3. mount.py sets up volume mounts or symlinks              │
+│ 3. CLI sets up volume mounts or symlinks                   │
 │    Docker:  Creates docker-compose.override.yml            │
 │    Dev:     Creates symlinks to dify-patcher/nodes/        │
 └─────────────────────────────────────────────────────────────┘
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 4. SDKs installed                                           │
+│ 4. SDKs installed (Python only)                            │
 │    pip install -e dify-patcher/sdk/python                   │
-│    pnpm install dify-patcher/sdk/typescript                 │
+│    (TypeScript SDK uses path mapping, no install needed)    │
 └─────────────────────────────────────────────────────────────┘
                            │
                            ▼

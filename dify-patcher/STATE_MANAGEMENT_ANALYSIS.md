@@ -590,7 +590,7 @@ context = StatePattern.session_context_init()
 1. **노드 설치**:
    ```bash
    cd dify-patcher
-   ./installer/install.sh --target ../dify --mode dev
+   cd installer/cli && npm start -- install --target ../../dify --mode dev
    ```
 
 2. **워크플로우 구성**:

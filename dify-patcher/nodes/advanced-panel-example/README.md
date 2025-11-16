@@ -288,7 +288,7 @@ const handleRemoveItem = (index: number) => { ... }
 
 ```bash
 cd /home/user/dify/dify-patcher
-./installer/install.sh --target ../dify --mode dev
+cd installer/cli && npm start -- install --target ../../dify --mode dev
 ```
 
 ### 2. Start Dify

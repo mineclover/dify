@@ -180,7 +180,7 @@ def _run(self) -> NodeRunResult:
 1. **Install the node**:
    ```bash
    cd dify-patcher
-   ./installer/install.sh --target ../dify --mode dev
+   cd installer/cli && npm start -- install --target ../../dify --mode dev
    ```
 
 2. **Create a workflow** in Dify with:
