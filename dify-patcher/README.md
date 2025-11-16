@@ -10,6 +10,7 @@ A complete solution for developing and deploying custom workflow nodes for Dify 
 - **📦 Modular** - Each custom node is a self-contained package with backend + frontend
 - **🔄 Update-Friendly** - When Dify updates, just re-apply patches (only 5 files!)
 - **🎨 Clean SDK** - Simple, typed APIs for Python and TypeScript
+- **🔷 Type Safety** - Import Dify types directly via path mapping for full type compatibility
 - **🚀 Hot Reload** - Development mode with instant changes
 - **📚 Auto-Discovery** - Custom nodes and panels automatically discovered at runtime
 - **🎛️ Custom Panels** - Build rich UI panels with 30+ components
@@ -23,6 +24,7 @@ A complete solution for developing and deploying custom workflow nodes for Dify 
 - [Architecture](#architecture)
 - [Installation](#installation)
 - [Creating Custom Nodes](#creating-custom-nodes)
+- [Type System Integration](#-type-system-integration)
 - [Custom Panels](#custom-panels)
 - [Examples](#examples)
 - [State Management](#-state-management)
@@ -317,6 +319,261 @@ export const MyPanel: FC<NodePanelProps<MyNodeData>> = ({ id, data }) => {
   )
 }
 ```
+
+## 🔷 Type System Integration
+
+dify-patcher integrates directly with Dify's type system to provide **full type safety** and **zero type duplication**. All custom nodes can import Dify's core types via path mapping.
+
+### Overview
+
+When developing custom nodes, you can choose between two approaches:
+
+1. **Recommended: Import Dify Types** - Full compatibility with Dify's workflow system
+2. **Compatibility: Use SDK Types** - Simplified types for standalone development
+
+### Importing Dify Types
+
+The recommended approach is to import types directly from Dify:
+
+```typescript
+// frontend/types.ts
+import type { CommonNodeType } from '@dify/types'
+
+export interface MyNodeData extends CommonNodeType<{
+  // Your custom fields
+  myField: string
+  myOptionalField?: number
+}> {
+  type: 'my-node'  // Must match manifest.json node_type
+}
+```
+
+**Benefits:**
+- ✅ Full type safety with all Dify fields
+- ✅ Automatic updates when Dify types change
+- ✅ Access to Dify's panel utilities and APIs
+- ✅ IntelliSense for all workflow properties
+
+### Using Panel Props
+
+Import `NodePanelProps` for full access to Dify's panel APIs:
+
+```typescript
+// frontend/panel.tsx
+import type { NodePanelProps } from '@dify/types'
+import type { MyNodeData } from './types'
+
+export const MyPanel: FC<NodePanelProps<MyNodeData>> = ({
+  id,
+  data,
+  panelProps  // Dify's panel utilities
+}) => {
+  // Access to panel APIs
+  const inputVars = panelProps.getInputVars(['field1', 'field2'])
+  const varInputs = panelProps.toVarInputs(variables)
+
+  return <div>...</div>
+}
+```
+
+### Using Node Props
+
+Import `NodeProps` for canvas components:
+
+```typescript
+// frontend/node.tsx
+import type { NodeProps } from '@dify/types'
+import type { MyNodeData } from './types'
+
+export const MyNode: FC<NodeProps<MyNodeData>> = ({ id, data }) => {
+  return (
+    <div>
+      <div>{data.myField}</div>
+      {/* Access all Dify runtime state */}
+      {data._runningStatus === 'running' && <Spinner />}
+    </div>
+  )
+}
+```
+
+### Available Type Imports
+
+#### From `@dify/types` (Core Workflow Types)
+
+```typescript
+import type {
+  // Node types
+  CommonNodeType,      // Main node data type
+  Node,                // ReactFlow node wrapper
+  NodeProps,           // Canvas component props
+  NodePanelProps,      // Panel component props
+
+  // Edge types
+  CommonEdgeType,
+  Edge,
+
+  // Enums
+  BlockEnum,           // All node type identifiers
+  ErrorHandleMode,
+
+  // Utility types
+  ValueSelector,       // [nodeId, key path]
+  Variable,
+  Branch,
+} from '@dify/types'
+```
+
+#### From `@dify/types/workflow` (Runtime Types)
+
+```typescript
+import type {
+  PanelProps,         // Panel utilities and APIs
+  NodeTracing,        // Execution tracing
+  FileResponse,       // File handling
+} from '@dify/types/workflow'
+```
+
+### TypeScript Configuration
+
+dify-patcher is configured to work both as:
+1. **Current structure**: `/dify/` and `/dify-patcher/` side-by-side
+2. **Submodule structure**: `/project/dify/` and `/project/dify-patcher/`
+
+The path mapping automatically resolves to the correct location:
+
+```json
+// tsconfig.json (already configured)
+{
+  "paths": {
+    "@dify/types": [
+      "../web/app/components/workflow/types",      // Current
+      "../dify/web/app/components/workflow/types"  // Submodule
+    ]
+  }
+}
+```
+
+### Complete Example
+
+Here's a complete custom node using Dify types:
+
+```typescript
+// frontend/types.ts
+import type { CommonNodeType } from '@dify/types'
+
+export interface WeatherNodeData extends CommonNodeType<{
+  api_key: string
+  city: string
+  units?: 'metric' | 'imperial'
+}> {
+  type: 'weather-api'
+}
+
+// frontend/panel.tsx
+import type { FC } from 'react'
+import type { NodePanelProps } from '@dify/types'
+import type { WeatherNodeData } from './types'
+import { useConfig } from './use-config'
+
+export const WeatherPanel: FC<NodePanelProps<WeatherNodeData>> = ({
+  id,
+  data,
+  panelProps
+}) => {
+  const { inputs, handleFieldChange } = useConfig(id, data)
+
+  return (
+    <div className="space-y-4">
+      <Field title="API Key" required>
+        <Input
+          type="password"
+          value={inputs.api_key || ''}
+          onChange={handleFieldChange('api_key')}
+        />
+      </Field>
+
+      <Field title="City" required>
+        <Input
+          value={inputs.city || ''}
+          onChange={handleFieldChange('city')}
+        />
+      </Field>
+
+      <Field title="Units">
+        <Select
+          value={inputs.units || 'metric'}
+          onChange={handleFieldChange('units')}
+          options={[
+            { label: 'Metric (°C)', value: 'metric' },
+            { label: 'Imperial (°F)', value: 'imperial' }
+          ]}
+        />
+      </Field>
+    </div>
+  )
+}
+
+// frontend/node.tsx
+import type { FC } from 'react'
+import type { NodeProps } from '@dify/types'
+import type { WeatherNodeData } from './types'
+
+export const WeatherNode: FC<NodeProps<WeatherNodeData>> = ({ data }) => {
+  return (
+    <div className="px-3 py-1">
+      <div className="text-xs font-medium">
+        🌤️ {data.city}
+      </div>
+      <div className="text-xs text-gray-500">
+        {data.units === 'imperial' ? '°F' : '°C'}
+      </div>
+    </div>
+  )
+}
+```
+
+### Migration from SDK Types
+
+If you have existing nodes using SDK types, migration is straightforward:
+
+**Before:**
+```typescript
+import type { CustomNodeData, NodePanelProps } from '../../../sdk/typescript/src/types'
+
+export interface MyNodeData extends CustomNodeData {
+  type: 'my-node'
+  myField: string
+}
+```
+
+**After:**
+```typescript
+import type { CommonNodeType, NodePanelProps } from '@dify/types'
+
+export interface MyNodeData extends CommonNodeType<{
+  myField: string
+}> {
+  type: 'my-node'
+}
+```
+
+### Best Practices
+
+1. **Always extend `CommonNodeType<T>`** for full Dify compatibility
+2. **Specify node type explicitly** to match `manifest.json`
+3. **Use Dify's `NodePanelProps`** to access panel utilities
+4. **Import from `@dify/types`** rather than local definitions
+5. **Keep custom fields in the generic parameter** `CommonNodeType<{...}>`
+
+### Advanced Topics
+
+For detailed information about:
+- Type system architecture
+- Path mapping configuration
+- Troubleshooting type errors
+- Submodule setup
+
+See the comprehensive [Type System Documentation](./TYPE_SYSTEM.md).
 
 ## 🎛️ Custom Panels
 
