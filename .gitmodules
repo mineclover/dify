@@ -1,0 +1,3 @@
+[submodule "dify-patcher"]
+	path = dify-patcher
+	url = https://github.com/mineclover/dify-patcher.git
