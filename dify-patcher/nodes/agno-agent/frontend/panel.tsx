@@ -2,6 +2,7 @@
  * Agno Agent Node - Configuration Panel
  *
  * Provides UI for configuring Agno AgentOS agent integration
+ * Uses Dify's type system for full workflow integration
  */
 
 import React from 'react'
@@ -9,7 +10,7 @@ import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useConfig } from './use-config'
 import { useAvailableVarList } from '../../../sdk/typescript/src/hooks/use-available-var-list'
-import type { NodePanelProps } from '../../../sdk/typescript/src/types'
+import type { NodePanelProps } from '@dify/types'
 import type { AgnoAgentNodeData } from './types'
 import { VarType } from '../../../sdk/typescript/src/types'
 

@@ -1,0 +1,65 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@dify/types": [
+        "../web/app/components/workflow/types",
+        "../dify/web/app/components/workflow/types"
+      ],
+      "@dify/types/workflow": [
+        "../web/types/workflow",
+        "../dify/web/types/workflow"
+      ],
+      "@dify/types/app": [
+        "../web/types/app",
+        "../dify/web/types/app"
+      ],
+      "@dify/types/common": [
+        "../web/service/use-common",
+        "../dify/web/service/use-common"
+      ],
+      "@dify/components/*": [
+        "../web/app/components/*",
+        "../dify/web/app/components/*"
+      ],
+      "@dify/ui-components": [
+        "../web/app/components/base/index",
+        "../dify/web/app/components/base/index"
+      ],
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "nodes/**/frontend/**/*.ts",
+    "nodes/**/frontend/**/*.tsx",
+    "sdk/typescript/src/**/*.ts",
+    "sdk/typescript/src/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/node_modules",
+    "dist",
+    "**/dist",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ]
+}
