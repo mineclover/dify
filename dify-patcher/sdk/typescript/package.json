@@ -1,0 +1,41 @@
+{
+  "name": "@dify/custom-nodes-sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for developing custom workflow nodes for Dify",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "pnpm run clean && pnpm run build"
+  },
+  "keywords": [
+    "dify",
+    "workflow",
+    "custom-nodes",
+    "llm",
+    "ai",
+    "react"
+  ],
+  "author": "Dify Custom Nodes Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mineclover/dify-patcher"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "reactflow": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "immer": "^10.0.0"
+  }
+}

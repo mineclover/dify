@@ -1,0 +1,93 @@
+{
+  "node_type": "agno-agent",
+  "version": "1",
+  "name": "Agno Agent",
+  "description": "Execute Agno AgentOS agents in Dify workflows with full support for sessions, streaming, and file attachments",
+  "author": "dify-patcher",
+  "icon": "🤖",
+  "category": "integration",
+  "backend": {
+    "entry": "node.py",
+    "dependencies": ["requests"]
+  },
+  "frontend": {
+    "entry": "index.ts"
+  },
+  "inputs": {
+    "agno_base_url": {
+      "type": "string",
+      "title": "Agno Base URL",
+      "description": "Base URL of your Agno AgentOS instance (e.g., https://your-agno.com)",
+      "required": true
+    },
+    "agent_id": {
+      "type": "string",
+      "title": "Agent ID",
+      "description": "Identifier of the agent to execute",
+      "required": true
+    },
+    "api_key": {
+      "type": "string",
+      "title": "API Key",
+      "description": "Bearer token for authentication (AgentOS Security Key)",
+      "required": true,
+      "format": "password"
+    },
+    "message": {
+      "type": "string",
+      "title": "Message",
+      "description": "Message to send to the agent",
+      "required": true
+    },
+    "session_id": {
+      "type": "string",
+      "title": "Session ID",
+      "description": "Session identifier for conversation context (auto-generated if not provided)",
+      "required": false
+    },
+    "user_id": {
+      "type": "string",
+      "title": "User ID",
+      "description": "User identifier for tracking",
+      "required": false
+    },
+    "stream": {
+      "type": "boolean",
+      "title": "Enable Streaming",
+      "description": "Enable Server-Sent Events streaming",
+      "required": false
+    },
+    "timeout": {
+      "type": "number",
+      "title": "Timeout (seconds)",
+      "description": "Request timeout in seconds",
+      "required": false
+    }
+  },
+  "outputs": {
+    "response": {
+      "type": "string",
+      "description": "Agent response text"
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Agno run identifier"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Session ID used for this run"
+    },
+    "status": {
+      "type": "string",
+      "description": "Execution status (success, failed, timeout)"
+    },
+    "execution_time": {
+      "type": "number",
+      "description": "Execution time in milliseconds"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Error message if failed"
+    }
+  }
+}
