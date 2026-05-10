@@ -1166,3 +1166,71 @@ class DraftWorkflowTriggerRunAllApi(Resource):
                     "status": "error",
                 }
             ), 400
+
+
+@console_ns.route("/apps/<uuid:app_id>/workflows/mcp-tool-nodes")
+class MCPToolNodesApi(Resource):
+    """
+    List available MCP tools as workflow nodes.
+
+    Returns tools that can be used as standalone nodes in workflows,
+    bypassing AI orchestration for deterministic execution.
+    """
+
+    @setup_required
+    @login_required
+    @account_initialization_required
+    @get_app_model(mode=[AppMode.ADVANCED_CHAT, AppMode.WORKFLOW])
+    def get(self, app_model: App):
+        from core.workflow.nodes.mcp_tool.entities import MCPToolInfo
+        from models.tools import MCPToolProvider
+
+        _, tenant_id = current_account_with_tenant()
+
+        nodes = []
+
+        with Session(db.engine) as session:
+            providers = session.query(MCPToolProvider).filter(
+                MCPToolProvider.tenant_id == tenant_id
+            ).all()
+
+            for provider in providers:
+                try:
+                    tools_json = provider.tools
+                    if isinstance(tools_json, str):
+                        tools = json.loads(tools_json)
+                    else:
+                        tools = tools_json or []
+
+                    for tool_data in tools:
+                        tool_info = MCPToolInfo(
+                            provider_id=provider.id,
+                            provider_name=provider.name,
+                            server_url="",  # Don't expose server URL
+                            tool_name=tool_data.get("name", ""),
+                            tool_description=tool_data.get("description"),
+                            input_schema=tool_data.get("inputSchema", {}),
+                            output_schema=tool_data.get("outputSchema"),
+                        )
+
+                        nodes.append({
+                            "node_type": tool_info.node_type,
+                            "provider_id": provider.id,
+                            "provider_name": provider.name,
+                            "provider_icon": provider.icon,
+                            "provider_icon_type": provider.icon_type,
+                            "provider_icon_background": provider.icon_background,
+                            "tool_name": tool_info.tool_name,
+                            "tool_description": tool_info.tool_description,
+                            "input_schema": tool_info.input_schema,
+                            "output_schema": tool_info.output_schema,
+                        })
+
+                except Exception as e:
+                    logger.warning(
+                        "Failed to process MCP provider %s: %s",
+                        provider.name, e
+                    )
+                    continue
+
+        return jsonable_encoder(nodes)

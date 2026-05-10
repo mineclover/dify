@@ -1,4 +1,6 @@
+import logging
 from collections.abc import Mapping
+from typing import Union
 
 from core.workflow.enums import NodeType
 from core.workflow.nodes.agent.agent_node import AgentNode
@@ -163,3 +165,136 @@ NODE_TYPE_CLASSES_MAPPING: Mapping[NodeType, Mapping[str, type[Node]]] = {
         "1": TriggerScheduleNode,
     },
 }
+
+logger = logging.getLogger(__name__)
+
+# ============================================================
+# Custom Nodes Integration (dify-patcher)
+# ============================================================
+# Custom nodes are loaded dynamically from _custom directory
+# and merged into the node mapping at runtime.
+
+# Combined mapping type that supports both NodeType enum and string keys
+NodeTypeKey = Union[NodeType, str]
+COMBINED_NODE_MAPPING: dict[NodeTypeKey, Mapping[str, type[Node]]] = dict(NODE_TYPE_CLASSES_MAPPING)
+
+
+def _load_custom_nodes_into_mapping() -> None:
+    """
+    Load custom nodes and add them to the combined mapping.
+
+    This function is called once at module import time.
+    """
+    try:
+        from core.dify_custom_nodes.loader import load_custom_nodes
+
+        custom_registry = load_custom_nodes()
+
+        for node_type, versions in custom_registry.items():
+            if node_type in COMBINED_NODE_MAPPING:
+                logger.warning("[dify-patcher] Custom node type '%s' conflicts with built-in node", node_type)
+                continue
+
+            COMBINED_NODE_MAPPING[node_type] = versions
+            logger.debug("[dify-patcher] Registered custom node: %s", node_type)
+
+    except ImportError as e:
+        logger.debug("[dify-patcher] Custom nodes not available: %s", e)
+    except Exception as e:
+        logger.warning("[dify-patcher] Failed to load custom nodes: %s", e)
+
+
+def _load_mcp_nodes_into_mapping() -> None:
+    """
+    Load MCP tool nodes and add them to the combined mapping.
+
+    MCP tools are loaded from the database and converted to workflow nodes.
+    This allows direct use of MCP tools in workflows without AI orchestration.
+    """
+    try:
+        from core.workflow.nodes.mcp_tool.registry import get_mcp_node_registry, load_mcp_nodes
+
+        # Load MCP nodes (no tenant filter for global registration)
+        load_mcp_nodes()
+        mcp_registry = get_mcp_node_registry()
+
+        for node_type, versions in mcp_registry.items():
+            if node_type in COMBINED_NODE_MAPPING:
+                logger.warning("[mcp-node] MCP node type '%s' conflicts with existing node", node_type)
+                continue
+
+            COMBINED_NODE_MAPPING[node_type] = versions
+            logger.debug("[mcp-node] Registered MCP tool node: %s", node_type)
+
+    except ImportError as e:
+        logger.debug("[mcp-node] MCP nodes not available: %s", e)
+    except Exception as e:
+        logger.warning("[mcp-node] Failed to load MCP nodes: %s", e)
+
+
+def get_node_class(node_type: NodeTypeKey, version: str = LATEST_VERSION) -> type[Node] | None:
+    """
+    Get a node class by type and version.
+
+    This function checks built-in, custom, and MCP nodes.
+
+    Args:
+        node_type: NodeType enum or string for custom/MCP nodes
+        version: Version string or "latest"
+
+    Returns:
+        Node class or None if not found
+    """
+    versions = COMBINED_NODE_MAPPING.get(node_type)
+    if versions:
+        return versions.get(version)
+
+    # Check MCP nodes (may be registered after initial load)
+    if isinstance(node_type, str) and node_type.startswith("mcp-"):
+        try:
+            from core.workflow.nodes.mcp_tool.registry import get_mcp_node_class
+            return get_mcp_node_class(node_type, version)
+        except ImportError:
+            pass
+
+    return None
+
+
+def is_valid_node_type(node_type: str) -> bool:
+    """
+    Check if a node type string is valid (built-in, custom, or MCP).
+
+    Args:
+        node_type: The node type string
+
+    Returns:
+        True if valid
+    """
+    # Check built-in types
+    try:
+        NodeType(node_type)
+        return True
+    except ValueError:
+        pass
+
+    # Check custom/MCP types in combined mapping
+    if node_type in COMBINED_NODE_MAPPING:
+        return True
+
+    # Check MCP nodes dynamically
+    if node_type.startswith("mcp-"):
+        try:
+            from core.workflow.nodes.mcp_tool.registry import is_mcp_node_type
+            return is_mcp_node_type(node_type)
+        except ImportError:
+            pass
+
+    return False
+
+
+# Load custom nodes at module import time
+_load_custom_nodes_into_mapping()
+
+# Note: MCP nodes are NOT loaded at module import time to avoid
+# database access during import. They are loaded lazily when needed.
+# To preload MCP nodes, call _load_mcp_nodes_into_mapping() explicitly.
